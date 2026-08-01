@@ -7,20 +7,36 @@ const ai = new GoogleGenAI({
 
 export async function POST(req: Request) {
   try {
-    const { message } = await req.json();
+    const { message, history } = await req.json();
+
+    const conversation =
+      history
+        ?.map(
+          (msg: any) =>
+            `${msg.role === "user" ? "User" : "Assistant"}: ${msg.message}`
+        )
+        .join("\n") || "";
 
     const prompt = `
 You are CareerAI, an expert AI Career Advisor.
 
 Rules:
 - Help students choose the best career.
-- Ask follow-up questions before giving advice.
-- Give clear and practical guidance.
+- Remember everything the user has shared in this conversation.
+- Use previous messages while answering.
+- Never contradict earlier answers.
+- Ask follow-up questions if information is missing.
+- Give practical, detailed and personalized advice.
 - Be friendly and motivating.
-- If the user asks unrelated questions, answer briefly and bring the conversation back to careers.
+- If the question is unrelated to careers, answer briefly and guide the user back to careers.
 
-User:
+Conversation History:
+${conversation}
+
+Current User Message:
 ${message}
+
+Assistant:
 `;
 
     const result = await ai.models.generateContent({
@@ -38,7 +54,9 @@ ${message}
       {
         reply: error?.message || "Something went wrong.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

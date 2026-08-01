@@ -2,157 +2,145 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useChat } from "@/app/hooks/Usechat";
+import { Message } from "@/app/types/chat";
 
-type Message = {
-  role: "user" | "assistant";
-  content: string;
-};
+import Sidebar from "@/app/components/chat/Sidebar";
+import ChatHeader from "@/app/components/chat/ChatHeader";
+import ChatInput from "@/app/components/chat/ChatInput";
+import MessageList from "@/app/components/chat/MessageList";
 
 export default function ChatPage() {
   const [userName, setUserName] = useState("User");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  const {
+    conversations,
+    activeConversation,
+    activeConversationId,
 
-  const [input, setInput] = useState("");
+    newChat,
+    selectChat,
+    deleteChat,
+    renameChat,
+    setConversationMessages,
+    setConversationLoading,
+  } = useChat();
+
+  const messages = activeConversation.messages;
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    const loadUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
-      if (session?.user) {
-        const name =
-          session.user.user_metadata.full_name ||
-          session.user.email?.split("@")[0] ||
-          "User";
+      const name =
+        session.user.user_metadata.full_name ||
+        session.user.email?.split("@")[0] ||
+        "User";
 
-        setUserName(name);
+      setUserName(name);
 
-        setMessages([
+      if (activeConversation.messages.length === 1) {
+        setConversationMessages([
           {
             role: "assistant",
-            content: `👋 Hi ${name}! I'm CareerAI. Tell me about yourself and I'll help you choose the best career.`,
-          },
-        ]);
-      } else {
-        setMessages([
-          {
-            role: "assistant",
-            content:
-              "👋 Hi! I'm CareerAI. Tell me about yourself and I'll help you choose the best career.",
+            message: `👋 Hi ${name}! I'm CareerAI. Tell me about yourself and I'll help you choose the best career.`,
           },
         ]);
       }
     };
 
-    getUser();
+    loadUser();
   }, []);
 
+  const handleSend = async (message: string) => {
+    const updatedMessages: Message[] = [
+      ...messages,
+      { role: "user", message },
+    ];
 
+    if (activeConversation.title === "New Chat") {
+      renameChat(
+        activeConversationId,
+        message.length > 30 ? message.substring(0, 30) + "..." : message
+      );
+    }
 
+    setConversationMessages(updatedMessages);
 
+    setConversationLoading(activeConversationId, true);
 
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+        message,
+        history: updatedMessages,
+        }),
+      });
 
-  const handleSend = async () => {
-  if (!input.trim()) return;
+      const data = await res.json();
 
-  const userMessage = input;
+      let current = "";
 
-  // User message show karo
-  setMessages((prev) => [
-    ...prev,
-    {
-      role: "user",
-      content: userMessage,
-    },
-  ]);
+      setConversationMessages([
+        ...updatedMessages,
+        { role: "assistant", message: "" },
+      ]);
 
-  setInput("");
+      for (const word of data.reply.split(" ")) {
+        current += word + " ";
+        await new Promise((r) => setTimeout(r, 25));
 
-  try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: userMessage,
-      }),
-    });
+        setConversationMessages([
+          ...updatedMessages,
+          { role: "assistant", message: current },
+        ]);
+      }
+    } catch {
+      setConversationMessages([
+        ...updatedMessages,
+        {
+          role: "assistant",
+          message: "❌ Something went wrong.",
+        },
+      ]);
+    } finally {
 
-    const data = await res.json();
-
-    // AI reply show karo
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        content: data.reply,
-      },
-    ]);
-  } catch (error) {
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        content: "❌ Something went wrong.",
-      },
-    ]);
-  }
-};
-
-
-
-
-
-
-
+      setConversationLoading(activeConversationId, false);
+    }
+  };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white flex flex-col">
-      {/* Header */}
-      <div className="border-b border-slate-800 p-4 text-xl font-bold">
-        🤖 CareerAI Assistant
-      </div>
+    <main className="flex h-screen bg-slate-950 text-white">
+      <Sidebar
+        open={sidebarOpen}
+        chats={conversations}
+        currentChat={activeConversationId}
+        onNewChat={newChat}
+        onDeleteChat={deleteChat}
+        onSelectChat={selectChat}
+      />
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`max-w-xl rounded-xl p-4 ${
-              message.role === "assistant"
-                ? "bg-slate-800"
-                : "bg-blue-600 ml-auto"
-            }`}
-          >
-            {message.content}
-          </div>
-        ))}
-      </div>
+      <div className="flex flex-1 flex-col">
+         <ChatHeader
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+/>
 
-      {/* Input */}
-      <div className="border-t border-slate-800 p-4 flex gap-3">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={`Message CareerAI, ${userName}...`}
-          className="flex-1 rounded-lg bg-slate-800 px-4 py-3 outline-none"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleSend();
-            }
-          }}
+        <MessageList
+          messages={messages}
+          loading={activeConversation.loading}
+          userName={userName}
         />
 
-        <button
-          onClick={handleSend}
-          className="bg-blue-600 hover:bg-blue-700 px-6 rounded-lg"
-        >
-          Send
-        </button>
+        <ChatInput
+          onSend={handleSend}
+          disabled={activeConversation.loading}
+        />
       </div>
     </main>
   );
