@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 export default function Hero() {
@@ -24,12 +26,13 @@ export default function Hero() {
         </p>
 
         <div className="flex gap-5 mt-10">
-          <Link
-            href="/chat"
+       <Link
+          href="/chat"
+            onClick={() => localStorage.setItem("forceNewChat", "true")}
             className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-xl text-white"
-          >
+>
             Start AI Chat
-          </Link>
+       </Link>
 
           <button className="border border-gray-700 px-8 py-4 rounded-xl text-white hover:bg-slate-800">
             Learn More

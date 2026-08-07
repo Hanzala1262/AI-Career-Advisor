@@ -38,9 +38,86 @@ export default function ChatBubble({
         }`}
       >
         <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={{
-            code({ className, children }: any) {
+  remarkPlugins={[remarkGfm]}
+  components={{
+    h1: ({ children }) => (
+      <h1 className="mb-4 mt-2 text-3xl font-bold text-cyan-400">
+        {children}
+      </h1>
+    ),
+
+    h2: ({ children }) => (
+      <h2 className="mb-3 mt-4 text-2xl font-semibold text-cyan-300">
+        {children}
+      </h2>
+    ),
+
+    h3: ({ children }) => (
+      <h3 className="mb-2 mt-3 text-xl font-semibold text-cyan-200">
+        {children}
+      </h3>
+    ),
+
+    p: ({ children }) => (
+      <p className="mb-3 leading-8">
+        {children}
+      </p>
+    ),
+
+    ul: ({ children }) => (
+      <ul className="mb-3 list-disc space-y-2 pl-6">
+        {children}
+      </ul>
+    ),
+
+    ol: ({ children }) => (
+      <ol className="mb-3 list-decimal space-y-2 pl-6">
+        {children}
+      </ol>
+    ),
+
+    li: ({ children }) => (
+      <li>{children}</li>
+    ),
+
+    strong: ({ children }) => (
+      <strong className="font-bold text-white">
+        {children}
+      </strong>
+    ),
+
+    a: ({ href, children }) => (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-cyan-400 underline hover:text-cyan-300"
+      >
+        {children}
+      </a>
+    ),
+
+    table: ({ children }) => (
+      <div className="overflow-x-auto my-4">
+        <table className="min-w-full border border-slate-600">
+          {children}
+        </table>
+      </div>
+    ),
+
+    th: ({ children }) => (
+      <th className="border border-slate-600 bg-slate-700 px-3 py-2 text-left">
+        {children}
+      </th>
+    ),
+
+    td: ({ children }) => (
+      <td className="border border-slate-600 px-3 py-2">
+        {children}
+      </td>
+    ),
+
+     code({ className, children }: any) {
               const match = /language-(\w+)/.exec(className || "");
 
               if (match) {

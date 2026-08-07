@@ -1,11 +1,10 @@
 "use client";
 
+import { useChatContext } from "@/app/Context/ChatProvider";
 import { Conversation } from "@/app/types/chat";
 import { MessageSquare, Plus, Trash2 } from "lucide-react";
 
 interface SidebarProps {
-  open: boolean;
-
   chats: Conversation[];
   currentChat: string;
 
@@ -15,13 +14,14 @@ interface SidebarProps {
 }
 
 export default function Sidebar({
-  open,
   chats,
   currentChat,
   onSelectChat,
   onNewChat,
   onDeleteChat,
 }: SidebarProps) {
+  const { sidebarOpen } = useChatContext();
+
   return (
     <aside
       className={`
@@ -30,7 +30,7 @@ export default function Sidebar({
         bg-slate-900
         transition-all
         duration-300
-        ${open ? "w-72" : "w-0 border-r-0"}
+        ${sidebarOpen ? "w-72" : "w-0 border-r-0"}
       `}
     >
       <div className="flex h-full w-72 flex-col">
@@ -45,7 +45,7 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* Chats */}
+        {/* Chat List */}
         <div className="flex-1 space-y-2 overflow-y-auto px-3">
           {chats.map((chat) => (
             <div

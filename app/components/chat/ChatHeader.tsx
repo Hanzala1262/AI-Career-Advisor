@@ -1,22 +1,17 @@
 "use client";
 
 import { Menu } from "lucide-react";
+import { useChatContext } from "@/app/Context/ChatProvider";
 
-interface ChatHeaderProps {
-  sidebarOpen: boolean;
-  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
+export default function ChatHeader() {
+  const { sidebarOpen, setSidebarOpen } = useChatContext();
 
-export default function ChatHeader({
-  sidebarOpen,
-  setSidebarOpen,
-}: ChatHeaderProps) {
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-800 bg-slate-950/80 px-6 py-4 backdrop-blur">
       <div className="flex items-center gap-4">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="rounded-lg p-2 hover:bg-slate-800 transition"
+          className="rounded-lg p-2 transition hover:bg-slate-800"
         >
           <Menu size={22} />
         </button>

@@ -1,5 +1,8 @@
 "use client";
 
+import { useSearchParams, useRouter } from "next/navigation";
+import { renameChat as renameChatInDB } from "@/lib/chatService";
+import { createChat,saveMessage,getMessages,} from "@/lib/chatService";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useChat } from "@/app/hooks/Usechat";
@@ -11,8 +14,12 @@ import ChatInput from "@/app/components/chat/ChatInput";
 import MessageList from "@/app/components/chat/MessageList";
 
 export default function ChatPage() {
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [userName, setUserName] = useState("User");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [userId, setUserId] = useState("");
+  
   
 
   const {
@@ -24,11 +31,59 @@ export default function ChatPage() {
     selectChat,
     deleteChat,
     renameChat,
+    replaceConversationId,
     setConversationMessages,
     setConversationLoading,
-  } = useChat();
+  } = useChat(userId);
+  
 
   const messages = activeConversation.messages;
+
+useEffect(() => {
+  const loadMessages = async () => {
+   if (!activeConversationId) return;
+
+if (activeConversationId.startsWith("temp-")) {
+  setConversationMessages(activeConversationId, [
+    {
+      role: "assistant",
+      message: `👋 Hi ${userName}! I'm CareerAI. Tell me about yourself and I'll help you choose the best career.`,
+    },
+  ]);
+
+  return;
+}
+
+    try {
+      const dbMessages = await getMessages(activeConversationId);
+
+      if (dbMessages.length === 0) {
+       setConversationMessages(activeConversationId, [
+  {
+    role: "assistant",
+    message: `👋 Hi ${userName}! I'm CareerAI. Tell me about yourself and I'll help you choose the best career.`,
+  },
+]);
+
+        return;
+      }
+
+      setConversationMessages(
+  activeConversationId,
+  dbMessages.map((msg: any) => ({
+    role: msg.role,
+    message: msg.message,
+  }))
+);
+    } catch (error) {
+      console.error("Load Messages Error:", error);
+    }
+  };
+
+  loadMessages();
+}, [activeConversationId, userName]);
+
+
 
   useEffect(() => {
     const loadUser = async () => {
@@ -41,19 +96,24 @@ export default function ChatPage() {
         "User";
 
       setUserName(name);
+      setUserId(session.user.id);
 
       if (activeConversation.messages.length === 1) {
-        setConversationMessages([
-          {
-            role: "assistant",
-            message: `👋 Hi ${name}! I'm CareerAI. Tell me about yourself and I'll help you choose the best career.`,
-          },
-        ]);
+       setConversationMessages(activeConversationId, [
+  {
+    role: "assistant",
+    message: `👋 Hi ${name}! I'm CareerAI. Tell me about yourself and I'll help you choose the best career.`,
+      },
+    ]);
       }
     };
 
     loadUser();
   }, []);
+
+
+
+
 
   const handleSend = async (message: string) => {
     const updatedMessages: Message[] = [
@@ -61,14 +121,61 @@ export default function ChatPage() {
       { role: "user", message },
     ];
 
-    if (activeConversation.title === "New Chat") {
-      renameChat(
-        activeConversationId,
-        message.length > 30 ? message.substring(0, 30) + "..." : message
-      );
-    }
 
-    setConversationMessages(updatedMessages);
+const oldChatId = activeConversationId;
+
+let chatId = activeConversationId;
+
+if (
+  activeConversation.title === "New Chat" &&
+  messages.length === 1 &&
+  messages[0].role === "assistant"
+) {
+  const dbChat = await createChat(userId);
+
+  chatId = dbChat.id;
+
+  replaceConversationId(oldChatId, chatId);
+
+  // Update localStorage with the real DB chat id
+  localStorage.setItem("lastChatId", chatId);
+  localStorage.removeItem("tempChat");
+}
+
+
+
+
+   if (activeConversation.title === "New Chat") {
+  const title =
+    message.length > 30
+      ? message.substring(0, 30) + "..."
+      : message;
+
+  renameChat(chatId, title);
+  selectChat(chatId);
+await renameChatInDB(chatId, title);
+}
+
+   
+    if (chatId !== activeConversationId) {
+  selectChat(chatId);
+}
+
+setConversationMessages(chatId, updatedMessages);
+console.log("chatId:", chatId);
+console.log("activeConversationId:", activeConversationId);
+console.log("updatedMessages:", updatedMessages);
+
+
+
+
+
+
+await saveMessage(
+  chatId,
+  "user",
+  message
+);
 
     setConversationLoading(activeConversationId, true);
 
@@ -83,31 +190,35 @@ export default function ChatPage() {
       });
 
       const data = await res.json();
+    await saveMessage(
+  chatId,
+  "assistant",
+  data.reply
+);
 
       let current = "";
 
-      setConversationMessages([
-        ...updatedMessages,
-        { role: "assistant", message: "" },
-      ]);
+     setConversationMessages(chatId, [
+  ...updatedMessages,
+  { role: "assistant", message: "" },
+]);
 
       for (const word of data.reply.split(" ")) {
         current += word + " ";
         await new Promise((r) => setTimeout(r, 25));
 
-        setConversationMessages([
-          ...updatedMessages,
-          { role: "assistant", message: current },
-        ]);
-      }
+       setConversationMessages(chatId, [...updatedMessages,
+        { role: "assistant", message: current },
+         ]);
+  }
     } catch {
-      setConversationMessages([
-        ...updatedMessages,
-        {
-          role: "assistant",
-          message: "❌ Something went wrong.",
-        },
-      ]);
+     setConversationMessages(chatId, [
+  ...updatedMessages,
+  {
+    role: "assistant",
+    message: "❌ Something went wrong.",
+  },
+]);
     } finally {
 
       setConversationLoading(activeConversationId, false);
@@ -116,20 +227,17 @@ export default function ChatPage() {
 
   return (
     <main className="flex h-screen bg-slate-950 text-white">
-      <Sidebar
-        open={sidebarOpen}
-        chats={conversations}
-        currentChat={activeConversationId}
-        onNewChat={newChat}
-        onDeleteChat={deleteChat}
-        onSelectChat={selectChat}
-      />
+      
 
-      <div className="flex flex-1 flex-col">
-         <ChatHeader
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
+    <Sidebar
+  chats={conversations}
+  currentChat={activeConversationId}
+  onNewChat={newChat}
+  onDeleteChat={deleteChat}
+  onSelectChat={selectChat}
 />
+   <div className="flex flex-1 flex-col">
+<ChatHeader />
 
         <MessageList
           messages={messages}
@@ -141,7 +249,7 @@ export default function ChatPage() {
           onSend={handleSend}
           disabled={activeConversation.loading}
         />
-      </div>
+        </div>
     </main>
   );
 }
