@@ -140,6 +140,7 @@ if (
   // Update localStorage with the real DB chat id
   localStorage.setItem("lastChatId", chatId);
   localStorage.removeItem("tempChat");
+  localStorage.removeItem("forceNewChat");
 }
 
 

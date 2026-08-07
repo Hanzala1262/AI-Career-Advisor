@@ -60,11 +60,12 @@ if (forceNewChat === "true") {
   setActiveConversationId(newConversation.id);
 
   localStorage.setItem("lastChatId", newConversation.id);
-  localStorage.removeItem("forceNewChat");
+
+  // ❌ Isko abhi remove mat karo
+  // localStorage.removeItem("forceNewChat");
 
   return;
 }
-
 
 
 
