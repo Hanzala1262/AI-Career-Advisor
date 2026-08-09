@@ -57,16 +57,20 @@ if (activeConversationId.startsWith("temp-")) {
     try {
       const dbMessages = await getMessages(activeConversationId);
 
-      if (dbMessages.length === 0) {
-       setConversationMessages(activeConversationId, [
-  {
-    role: "assistant",
-    message: `👋 Hi ${userName}! I'm CareerAI. Tell me about yourself and I'll help you choose the best career.`,
-  },
-]);
+    if (dbMessages.length === 0) {
+  if (activeConversation.messages.length > 0) {
+    return;
+  }
 
-        return;
-      }
+  setConversationMessages(activeConversationId, [
+    {
+      role: "assistant",
+      message: `👋 Hi ${userName}! I'm CareerAI. Tell me about yourself and I'll help you choose the best career.`,
+    },
+  ]);
+
+  return;
+}
 
       setConversationMessages(
   activeConversationId,
@@ -121,7 +125,7 @@ if (activeConversationId.startsWith("temp-")) {
       { role: "user", message },
     ];
 
-
+setConversationMessages(activeConversationId, updatedMessages);
 const oldChatId = activeConversationId;
 
 let chatId = activeConversationId;
@@ -162,23 +166,13 @@ await renameChatInDB(chatId, title);
   selectChat(chatId);
 }
 
-setConversationMessages(chatId, updatedMessages);
-console.log("chatId:", chatId);
-console.log("activeConversationId:", activeConversationId);
-console.log("updatedMessages:", updatedMessages);
-
-
-
-
-
-
 await saveMessage(
   chatId,
   "user",
   message
 );
 
-    setConversationLoading(activeConversationId, true);
+    setConversationLoading(chatId, true);
 
     try {
       const res = await fetch("/api/chat", {
@@ -222,7 +216,7 @@ await saveMessage(
 ]);
     } finally {
 
-      setConversationLoading(activeConversationId, false);
+      setConversationLoading(chatId, false);
     }
   };
 
