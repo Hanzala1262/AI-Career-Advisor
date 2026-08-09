@@ -16,7 +16,7 @@ export function useChat(userId?: string) {
     title: "New Chat",
     createdAt: new Date(),
     loading: false,
-    messages: [createWelcomeMessage()],
+    messages: [],
   });
 
   const [conversations, setConversations] = useState<Conversation[]>([

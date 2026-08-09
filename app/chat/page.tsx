@@ -17,7 +17,7 @@ export default function ChatPage() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [userName, setUserName] = useState("User");
+  const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
   
   
@@ -240,11 +240,13 @@ await saveMessage(
    <div className="flex flex-1 flex-col">
 <ChatHeader />
 
-        <MessageList
-          messages={messages}
-          loading={activeConversation.loading}
-          userName={userName}
-        />
+       {userName && (
+      <MessageList
+      messages={messages}
+      loading={activeConversation.loading}
+       userName={userName}
+      />
+)}
 
         <ChatInput
           onSend={handleSend}
