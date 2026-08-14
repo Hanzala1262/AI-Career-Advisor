@@ -45,21 +45,37 @@ export default function FeaturesPage() {
       <section className="max-w-7xl mx-auto px-6 py-20">
 
         <div className="text-center">
-          <h1 className="text-5xl font-bold">
-            Our <span className="text-blue-500">Features</span>
-          </h1>
+          <h1 className="text-5xl font-bold animate-[fadeUp_0.8s_ease-out_forwards] opacity-0">
+  Our <span className="text-blue-500">Features</span>
+</h1>
 
-          <p className="text-gray-400 mt-6 max-w-3xl mx-auto text-lg">
-            CareerAI combines Artificial Intelligence with career guidance to
-            help students and professionals make better career decisions.
-          </p>
+          <p className="text-gray-400 mt-6 max-w-3xl mx-auto text-lg animate-[fadeUp_0.8s_ease-out_0.2s_forwards] opacity-0">
+  CareerAI combines Artificial Intelligence with career guidance to
+  help students and professionals make better career decisions.
+</p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-20">
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-slate-900 border border-slate-800 rounded-2xl p-8 hover:border-blue-500 hover:-translate-y-2 transition-all duration-300"
+              className="
+  bg-slate-900
+  border border-slate-800
+  rounded-2xl
+  p-8
+  opacity-0
+  animate-[fadeUp_0.7s_ease-out_forwards]
+  hover:border-blue-500
+  hover:-translate-y-3
+  hover:shadow-xl
+  hover:shadow-blue-500/10
+  transition-all
+  duration-300
+"
+style={{
+  animationDelay: `${index * 120}ms`,
+}}
             >
               <div className="text-5xl">{feature.icon}</div>
 
@@ -76,11 +92,26 @@ export default function FeaturesPage() {
 
         <div className="text-center mt-20">
           <Link
-            href="/"
-            className="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-xl inline-block font-semibold"
-          >
-            ← Back to Home
-          </Link>
+  href="/"
+  className="
+    bg-blue-600
+    hover:bg-blue-700
+    px-8
+    py-4
+    rounded-xl
+    inline-block
+    font-semibold
+    animate-[fadeUp_0.8s_ease-out_0.8s_forwards]
+    opacity-0
+    transition-all
+    duration-300
+    hover:scale-105
+    hover:shadow-lg
+    hover:shadow-blue-500/20
+  "
+>
+  ← Back to Home
+</Link>
         </div>
 
       </section>

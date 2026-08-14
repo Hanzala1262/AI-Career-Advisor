@@ -43,21 +43,32 @@ export default function Features() {
       <div className="max-w-7xl mx-auto px-6">
 
         <div className="text-center">
-          <h2 className="text-4xl font-bold text-white">
-            Powerful Features
-          </h2>
+          <h2 className="text-4xl font-bold text-white animate-[fadeUp_0.8s_ease-out_forwards]">
+  Powerful Features
+</h2>
 
-          <p className="text-gray-400 mt-4 max-w-2xl mx-auto">
-            Everything you need to discover your ideal career with the help of Artificial Intelligence.
-          </p>
+          <p className="text-gray-400 mt-4 max-w-2xl mx-auto animate-[fadeUp_0.8s_ease-out_0.15s_forwards]">
+  Everything you need to discover your ideal career with the help of Artificial Intelligence.
+</p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-slate-800 rounded-2xl p-8 border border-slate-700 hover:border-blue-500 hover:-translate-y-2 transition-all duration-300"
-            >
+              className={`bg-slate-800 rounded-2xl p-8 border border-slate-700
+  opacity-0
+  animate-[fadeUp_0.7s_ease-out_forwards]
+  hover:border-blue-500
+  hover:-translate-y-3
+  hover:shadow-xl
+  hover:shadow-blue-500/10
+  transition-all
+  duration-300`}
+  style={{
+  animationDelay: `${index * 120}ms`,
+}}
+>
               <div className="text-5xl">{feature.icon}</div>
 
               <h3 className="text-2xl font-semibold text-white mt-6">
