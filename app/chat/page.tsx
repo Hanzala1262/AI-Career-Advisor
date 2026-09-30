@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+
 import { renameChat as renameChatInDB } from "@/lib/chatService";
 import { createChat,saveMessage,getMessages,} from "@/lib/chatService";
 import { useEffect, useState } from "react";
@@ -15,8 +15,7 @@ import MessageList from "@/app/components/chat/MessageList";
 
 export default function ChatPage() {
 
-  const searchParams = useSearchParams();
-  const router = useRouter();
+
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
   
