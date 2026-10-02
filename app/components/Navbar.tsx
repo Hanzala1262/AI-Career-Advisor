@@ -25,10 +25,25 @@ useEffect(() => {
   };
 
   getUser();
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setUserEmail(session?.user?.email || "");
+    setMenuOpen(false);
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
 }, []);
 
 const handleLogout = async () => {
+  setMenuOpen(false);
+  setUserEmail("");
+
   await supabase.auth.signOut();
+
   window.location.href = "/";
 };
 
@@ -42,9 +57,13 @@ const handleLogout = async () => {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
         {/* Logo */}
-        <h1 className="text-2xl font-bold text-white">
-          Career<span className="text-blue-500">AI</span>
-        </h1>
+        <Link
+  href="/"
+  className="text-2xl font-bold text-white"
+  onClick={() => setMenuOpen(false)}
+>
+  Career<span className="text-blue-500">AI</span>
+</Link>
 
         {/* Desktop Menu */}
         <ul className="hidden md:flex gap-8 text-gray-300">
@@ -123,35 +142,97 @@ const handleLogout = async () => {
 
       </div>
 
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-slate-900 border-t border-slate-800">
-          <ul className="flex flex-col p-6 gap-5 text-gray-300">
+     {/* Mobile Menu */}
+{menuOpen && (
+  <div className="md:hidden bg-slate-900 border-t border-slate-800">
+    <ul className="flex flex-col p-6 gap-5 text-gray-300">
 
-            <li><Link href="/">Home</Link></li>
-            <li><Link href="/features">Features</Link></li>
-            <li><Link href="/about">About</Link></li>
-            <li><Link href="/contact">Contact</Link></li>
+      <li>
+        <Link
+          href="/"
+          onClick={() => setMenuOpen(false)}
+        >
+          Home
+        </Link>
+      </li>
 
-            <div className="flex flex-col gap-3 mt-4">
-              <Link
-                href="/login"
-                className="text-center border border-slate-700 py-3 rounded-lg text-white"
-              >
-                Login
-              </Link>
-                 
-              <Link
-                href="/signup"
-                className="text-center bg-blue-600 py-3 rounded-lg text-white"
->
-                Sign Up
-                </Link> 
+      <li>
+        <Link
+          href="/features"
+          onClick={() => setMenuOpen(false)}
+        >
+          Features
+        </Link>
+      </li>
+
+      <li>
+        <Link
+          href="/about"
+          onClick={() => setMenuOpen(false)}
+        >
+          About
+        </Link>
+      </li>
+
+      <li>
+        <Link
+          href="/contact"
+          onClick={() => setMenuOpen(false)}
+        >
+          Contact
+        </Link>
+      </li>
+
+      <div className="flex flex-col gap-3 mt-4">
+
+        {userEmail ? (
+          <>
+            {/* Logged In User */}
+            <div className="border border-slate-700 rounded-xl p-4">
+              <p className="text-xs text-gray-500 mb-1">
+                Logged in as
+              </p>
+
+              <p className="text-white text-sm break-all">
+                {userEmail}
+              </p>
             </div>
 
-          </ul>
-        </div>
-      )}
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg text-white transition"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            {/* Login */}
+            <Link
+              href="/login"
+              onClick={() => setMenuOpen(false)}
+              className="text-center border border-slate-700 py-3 rounded-lg text-white"
+            >
+              Login
+            </Link>
+
+            {/* Sign Up */}
+            <Link
+              href="/signup"
+              onClick={() => setMenuOpen(false)}
+              className="text-center bg-blue-600 py-3 rounded-lg text-white"
+            >
+              Sign Up
+            </Link>
+          </>
+        )}
+
+      </div>
+
+    </ul>
+  </div>
+)}
     </nav>
   );
 }
